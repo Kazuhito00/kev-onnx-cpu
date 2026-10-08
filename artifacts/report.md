@@ -163,7 +163,7 @@ merges も両形式を受け付ける。
 ```bash
 uv sync
 
-uv run download_model.py     # 330 MB、HTTPS のみ
+uv run download_model.py     # 330 MB、HTTPS のみ（Releases、SHA-256 照合）
 uv run demo_inference_text.py
 uv run verify/run_all.py
 

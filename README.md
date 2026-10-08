@@ -12,6 +12,7 @@ torch・transformers・tokenizers は使いません。
 - 判定は参照実装（npmの[open-jev](https://www.npmjs.com/package/open-jev)）とビット単位で一致（12/12、最大確率差 1.11e-16 = float64の丸め誤差）
 - 全質問が1回の順伝播で決まるため、質問を増やすほど1判定あたりのコストが下がる（1問 121 ms → 16問で 56 ms/判定、8スレッド）
 - ピークRAMは約 553 MB、ONNXは 323 MB（q4f16）
+- ONNXは[onnx-community/kev-0.6b-ONNX](https://huggingface.co/onnx-community/kev-0.6b-ONNX)のq4f16と同一のものを[Releases](https://github.com/Kazuhito00/kev-onnx-cpu/releases/tag/v0.0.0)で配布
 - 公式の前処理（Qwen byte-level BPEトークナイザ、系列の組み立て、区切りの退避）を純Pythonで移植し、参照実装との突き合わせ検証を同梱
 
 # Purpose of This Repository
@@ -44,21 +45,22 @@ uv sync
 ```
 
 # Download Model
-ONNXファイルはHugging Faceから取得します（リポジトリには含めていません）。<br>
+ONNXファイルは[Releases](https://github.com/Kazuhito00/kev-onnx-cpu/releases/tag/v0.0.0)に置いています（リポジトリには含めていません）。<br>
 以下のスクリプトで `models/onnx/onnx/` に取得します。標準ライブラリのHTTPSのみで動き、gitもgit-lfsも不要です。
 ```bash
 uv run download_model.py
 ```
-- `model_q4f16.onnx` と `model_q4f16.onnx_data`（合計 約330 MB）を取得します
+- `model_q4f16.onnx` と `model_q4f16.onnx_data`（合計 約330 MB）を取得し、スクリプトに固定したSHA-256と照合します（不一致ならファイルを削除して停止）
 - 取得済みなら何もせず、中断した場合は同じコマンドで続きから再開します
 - トークナイザと設定ファイルはリポジトリに含まれています
-- 手動で取得する場合は、[onnx-community/kev-0.6b-ONNX](https://huggingface.co/onnx-community/kev-0.6b-ONNX)の `onnx/model_q4f16.onnx` と `onnx/model_q4f16.onnx_data` を `models/onnx/onnx/` に置いてください
+- 手動で取得する場合は、Releasesの2ファイルを `models/onnx/onnx/` に置いてください
 
 他の取得方法です。
 ```bash
 uv run download_model.py --list                  # profile / variant一覧
-uv run download_model.py --variant q4            # 4bit MatMulNBits、他はfp32
-uv run download_model.py --profile kev-4b        # Qwen3-4Bベース（models/onnx-4b/ に取得）
+uv run download_model.py --source hf             # 同じq4f16をHugging Faceから取得
+uv run download_model.py --variant q4            # 4bit MatMulNBits、他はfp32（Hugging Face）
+uv run download_model.py --profile kev-4b        # Qwen3-4Bベース（Hugging Face、models/onnx-4b/ に取得）
 ```
 
 | profile | ベース | サイズ |
@@ -131,7 +133,7 @@ d = Decider("models/onnx", variant="q4f16", providers=gpu_providers())
 - `onnxruntime` の代わりに `onnxruntime-gpu`（Windowsなら `onnxruntime-directml` も可）を入れます。両者は同じ `onnxruntime/` ディレクトリにファイルを書くため、併存させないでください。入れ替えたときは `uv pip install --force-reinstall --no-deps onnxruntime-gpu` で入れ直します
 - `uv run` は `pyproject.toml` に合わせて `onnxruntime`（CPU版）を再インストールするため、`uv run --no-sync` を使ってください（`UV_NO_SYNC=1` でも同じです）
 - 実際に使われたプロバイダは、デモの最終行と `verify/bench.py` の出力（`provider`）で確認できます
-- GPU環境での測定は未実施です
+- 測定結果は「性能」の節を参照してください。GPUでの確率は、CPUと完全には一致しません（fp16グラフの演算差。参照実装との一致検証はCPUのみ）
 
 # Verification
 ```bash
@@ -164,6 +166,13 @@ uv run --with tokenizers verify/run_all.py --full-fuzz   # Rust tokenizersとの
 | 8 | 135 | 451 ms | 56 ms |
 | 16 | 254 | 888 ms | 56 ms |
 
+GPU（`--gpu`、NVIDIA GeForce RTX 3050 Ti Laptop GPU、onnxruntime-gpu）で同じ3問を測った結果です。
+
+| | median | セッション生成 | ピークRAM |
+|---|---:|---:|---:|
+| CPU（8スレッド） | 224 ms | 3.9 s | 553 MB |
+| GPU（CUDA） | 21.7 ms | 2.3 s | 905 MB |
+
 | | パッケージ数 |
 |---|---:|
 | 参照実装（`open-jev` + `@huggingface/transformers`、Node） | 46 |
@@ -184,7 +193,7 @@ README_EN.md             # README（英語）
 LICENSE                  # Apache-2.0
 pyproject.toml           # 依存定義（実行時は2つ。verifyグループは突合検証のoracle用）
 uv.lock                  # uvのロックファイル
-download_model.py        # モデル取得（Hugging Face）
+download_model.py        # モデル取得（Releases / Hugging Face）
 demo_inference_text.py   # 推論デモ
 kev_decide/              # 推論実装（軽い依存のみ）
   runtime.py             #   ORTセッション、読み出し、Decider

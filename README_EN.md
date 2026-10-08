@@ -11,6 +11,7 @@ It does not use torch, transformers or tokenizers.
 - Answers are bit-for-bit identical to the reference implementation ([open-jev](https://www.npmjs.com/package/open-jev) on npm): 12/12, max probability difference 1.11e-16 (float64 rounding error)
 - All questions are answered in a single forward pass, so the cost per decision drops as you add questions (121 ms for 1 question → 56 ms/decision for 16, 8 threads)
 - Peak RAM is about 553 MB, and the ONNX is 323 MB (q4f16)
+- The ONNX is identical to the q4f16 of [onnx-community/kev-0.6b-ONNX](https://huggingface.co/onnx-community/kev-0.6b-ONNX) and is distributed in [Releases](https://github.com/Kazuhito00/kev-onnx-cpu/releases/tag/v0.0.0)
 - The preprocessing (Qwen byte-level BPE tokenizer, sequence packing, delimiter escaping) is ported to pure Python, with checks against the reference implementation included
 
 # Purpose of This Repository
@@ -43,21 +44,22 @@ uv sync
 ```
 
 # Download Model
-The ONNX files are fetched from Hugging Face (they are not in the repository).<br>
+The ONNX files are in [Releases](https://github.com/Kazuhito00/kev-onnx-cpu/releases/tag/v0.0.0) (they are not in the repository).<br>
 The script below places them in `models/onnx/onnx/`. It uses only standard-library HTTPS; neither git nor git-lfs is needed.
 ```bash
 uv run download_model.py
 ```
-- Fetches `model_q4f16.onnx` and `model_q4f16.onnx_data` (about 330 MB in total)
+- Fetches `model_q4f16.onnx` and `model_q4f16.onnx_data` (about 330 MB in total) and checks them against the SHA-256 pinned in the script (on a mismatch it deletes the file and stops)
 - Does nothing if they are already present, and an interrupted download resumes with the same command
 - The tokenizer and config files are included in the repository
-- To fetch manually, put `onnx/model_q4f16.onnx` and `onnx/model_q4f16.onnx_data` from [onnx-community/kev-0.6b-ONNX](https://huggingface.co/onnx-community/kev-0.6b-ONNX) into `models/onnx/onnx/`
+- To fetch manually, put the two files from Releases into `models/onnx/onnx/`
 
 Other ways to fetch:
 ```bash
 uv run download_model.py --list                  # list profiles / variants
-uv run download_model.py --variant q4            # 4-bit MatMulNBits, fp32 elsewhere
-uv run download_model.py --profile kev-4b        # Qwen3-4B base (fetched to models/onnx-4b/)
+uv run download_model.py --source hf             # the same q4f16 from Hugging Face
+uv run download_model.py --variant q4            # 4-bit MatMulNBits, fp32 elsewhere (Hugging Face)
+uv run download_model.py --profile kev-4b        # Qwen3-4B base (Hugging Face, fetched to models/onnx-4b/)
 ```
 
 | profile | base | size |
@@ -130,7 +132,7 @@ Notes:
 - Install `onnxruntime-gpu` (or `onnxruntime-directml` on Windows) instead of `onnxruntime`. They write into the same `onnxruntime/` directory, so do not install them together. After swapping, reinstall with `uv pip install --force-reinstall --no-deps onnxruntime-gpu`
 - `uv run` reinstalls the CPU `onnxruntime` to match `pyproject.toml`, so use `uv run --no-sync` (or `UV_NO_SYNC=1`)
 - The provider actually used is shown on the last line of the demo and in the `provider` field of `verify/bench.py`
-- GPU performance has not been measured
+- See the Performance section for measurements. Probabilities on GPU do not match CPU exactly (fp16 graph arithmetic; the check against the reference implementation was done on CPU only)
 
 # Verification
 ```bash
@@ -163,6 +165,13 @@ Varying the number of questions (8 threads). All questions share one forward pas
 | 8 | 135 | 451 ms | 56 ms |
 | 16 | 254 | 888 ms | 56 ms |
 
+The same 3 questions on GPU (`--gpu`, NVIDIA GeForce RTX 3050 Ti Laptop GPU, onnxruntime-gpu):
+
+| | median | session load | peak RAM |
+|---|---:|---:|---:|
+| CPU (8 threads) | 224 ms | 3.9 s | 553 MB |
+| GPU (CUDA) | 21.7 ms | 2.3 s | 905 MB |
+
 | | packages |
 |---|---:|
 | reference (`open-jev` + `@huggingface/transformers`, Node) | 46 |
@@ -183,7 +192,7 @@ README_EN.md             # README (English)
 LICENSE                  # Apache-2.0
 pyproject.toml           # dependencies (two at run time; the verify group is the oracle for the cross-check)
 uv.lock                  # uv lock file
-download_model.py        # fetch the model (Hugging Face)
+download_model.py        # fetch the model (Releases / Hugging Face)
 demo_inference_text.py   # inference demo
 kev_decide/              # inference implementation (light dependencies only)
   runtime.py             #   ORT session, readout, Decider
