@@ -1,0 +1,75 @@
+{
+  "architectures": [
+    "Qwen3Model"
+  ],
+  "attention_bias": false,
+  "attention_dropout": 0.0,
+  "bos_token_id": 151643,
+  "eos_token_id": 151643,
+  "head_dim": 128,
+  "hidden_act": "silu",
+  "hidden_size": 1024,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "max_position_embeddings": 32768,
+  "max_window_layers": 28,
+  "model_type": "qwen3",
+  "num_attention_heads": 16,
+  "num_hidden_layers": 28,
+  "num_key_value_heads": 8,
+  "rms_norm_eps": 1e-06,
+  "rope_scaling": null,
+  "rope_theta": 1000000,
+  "sliding_window": null,
+  "tie_word_embeddings": true,
+  "torch_dtype": "float32",
+  "transformers_version": "4.51.0",
+  "use_cache": false,
+  "use_sliding_window": false,
+  "vocab_size": 151936,
+  "pad_token_id": 151643,
+  "kev": {
+    "description": "Kev typed-decision model: one state plus typed questions packed into one sequence; the logit of an option is the pointer score of its </opt> token against its question's <decide> token; softmax within each question.",
+    "delimiters": {
+      "state": "<|fim_prefix|>",
+      "question": "<|fim_middle|>",
+      "option_start": "<|box_start|>",
+      "option_end": "<|box_end|>",
+      "decide": "<|fim_suffix|>"
+    },
+    "delimiter_ids": {
+      "state": 151659,
+      "question": 151660,
+      "option_start": 151648,
+      "option_end": 151649,
+      "decide": 151661
+    },
+    "user_text_escape": "<|name|> -> <¦name¦> before tokenizing caller text, so delimiters are unforgeable",
+    "max_state_tokens": 8192,
+    "max_branch_tokens": 8192,
+    "trained_max_state_tokens": 384,
+    "trained_max_branch_tokens": 1024,
+    "max_options": 255,
+    "noul_options": [
+      "no",
+      "yes"
+    ],
+    "head_dim": 256,
+    "scale": 0.0625,
+    "option_isolation": false,
+    "lora": {
+      "r": 16,
+      "alpha": 32,
+      "merged": true
+    },
+    "inputs": "input_ids, attention_mask (batch, seq), right padded; segments, positions and the block-causal mask are derived in-graph from the delimiter ids",
+    "output": "logits (batch, seq): read the value at each option's </opt> position and softmax within the question"
+  },
+  "transformers.js_config": {
+    "use_external_data_format": {
+      "model_q4.onnx": 1,
+      "model_q4f16.onnx": 1
+    },
+    "dtype": "q4f16"
+  }
+}

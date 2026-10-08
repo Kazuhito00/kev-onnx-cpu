@@ -1,0 +1,2 @@
+# Only for the oracle gate in verify/check_tokenizer_fuzz.py. Never imported at runtime.
+tokenizers>=0.20

@@ -1,0 +1,22 @@
+[project]
+name = "kev-onnx-cpu"
+version = "0.1.0"
+description = "Kev (typed decisions) on CPU with onnxruntime + numpy only: no torch, no transformers, no tokenizers"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+# Runtime. That is the whole list.
+dependencies = [
+    "onnxruntime>=1.20",
+    "numpy>=1.26",
+]
+
+[dependency-groups]
+# Only for the oracle gate in verify/check_tokenizer_fuzz.py. Never imported at runtime.
+verify = [
+    "tokenizers>=0.20",
+]
+
+# Not a package to build: the code is run from the checkout (`uv run demo_inference_text.py`).
+[tool.uv]
+package = false

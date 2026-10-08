@@ -1,0 +1,268 @@
+{
+ "model": "kev-0.6b",
+ "dtype": "q4f16",
+ "cases": [
+  {
+   "id": "support_routing",
+   "state": "Hi, I was charged twice for my Pro subscription this month. Please refund the duplicate payment.",
+   "questions": [
+    {
+     "type": "choice",
+     "instructions": "Which team should handle this request?",
+     "options": [
+      "billing",
+      "technical",
+      "sales"
+     ],
+     "descriptions": {
+      "billing": "charges, refunds, invoices",
+      "technical": "bugs and outages",
+      "sales": "pricing and upgrades"
+     }
+    },
+    {
+     "type": "noul",
+     "instructions": "The customer is angry.",
+     "options": null,
+     "descriptions": null
+    },
+    {
+     "type": "score",
+     "instructions": "How urgent is this?",
+     "options": [
+      "low",
+      "medium",
+      "high",
+      "critical"
+     ],
+     "descriptions": null
+    }
+   ],
+   "answers": [
+    {
+     "type": "choice",
+     "choice": "billing",
+     "confidence": 0.9906499325449337,
+     "probabilities": {
+      "billing": 0.9906499325449337,
+      "technical": 0.002368432663002658,
+      "sales": 0.006981634792063511
+     }
+    },
+    {
+     "type": "noul",
+     "answer": true,
+     "probability": 0.8413048148640399,
+     "confidence": 0.8413048148640399
+    },
+    {
+     "type": "score",
+     "score": 0.7829219194470147,
+     "normalized": 0.2609739731490049,
+     "level": "medium",
+     "confidence": 0.5646762858276433,
+     "probabilities": {
+      "low": 0.3332553028674416,
+      "medium": 0.5646762858276433,
+      "high": 0.087959600295374,
+      "critical": 0.014108811009541169
+     }
+    }
+   ]
+  },
+  {
+   "id": "bug_triage",
+   "state": "The export button crashes in Safari but works in Chrome. Not blocking, we told users to switch browsers.",
+   "questions": [
+    {
+     "type": "choice",
+     "instructions": "How severe is this bug?",
+     "options": [
+      "cosmetic",
+      "degraded",
+      "blocking"
+     ],
+     "descriptions": null
+    },
+    {
+     "type": "noul",
+     "instructions": "This should be escalated immediately.",
+     "options": null,
+     "descriptions": null
+    }
+   ],
+   "answers": [
+    {
+     "type": "choice",
+     "choice": "degraded",
+     "confidence": 0.4702916006812947,
+     "probabilities": {
+      "cosmetic": 0.09134842618791882,
+      "degraded": 0.4702916006812947,
+      "blocking": 0.4383599731307865
+     }
+    },
+    {
+     "type": "noul",
+     "answer": true,
+     "probability": 0.5438325053576957,
+     "confidence": 0.5438325053576957
+    }
+   ]
+  },
+  {
+   "id": "incident",
+   "state": "URGENT: production database is down, all customers affected, CEO asking for updates every 5 minutes.",
+   "questions": [
+    {
+     "type": "score",
+     "instructions": "How urgent is this?",
+     "options": [
+      "low",
+      "medium",
+      "high",
+      "critical"
+     ],
+     "descriptions": null
+    },
+    {
+     "type": "noul",
+     "instructions": "This is a security incident.",
+     "options": null,
+     "descriptions": null
+    },
+    {
+     "type": "noul",
+     "instructions": "The on-call engineer should be paged.",
+     "options": null,
+     "descriptions": null
+    }
+   ],
+   "answers": [
+    {
+     "type": "score",
+     "score": 2.5417534605210372,
+     "normalized": 0.8472511535070124,
+     "level": "critical",
+     "confidence": 0.5743399233532352,
+     "probabilities": {
+      "low": 0.004760023817948952,
+      "medium": 0.023066415196300427,
+      "high": 0.39783363763251545,
+      "critical": 0.5743399233532352
+     }
+    },
+    {
+     "type": "noul",
+     "answer": true,
+     "probability": 0.8891444050747391,
+     "confidence": 0.8891444050747391
+    },
+    {
+     "type": "noul",
+     "answer": true,
+     "probability": 0.6424324776295582,
+     "confidence": 0.6424324776295582
+    }
+   ]
+  },
+  {
+   "id": "japanese_state",
+   "state": "先週の納品が遅れた件、まだ連絡がありません。至急対応してください。",
+   "questions": [
+    {
+     "type": "noul",
+     "instructions": "The customer is angry.",
+     "options": null,
+     "descriptions": null
+    },
+    {
+     "type": "score",
+     "instructions": "How urgent is this?",
+     "options": [
+      "low",
+      "medium",
+      "high"
+     ],
+     "descriptions": null
+    }
+   ],
+   "answers": [
+    {
+     "type": "noul",
+     "answer": false,
+     "probability": 0.2254166158350767,
+     "confidence": 0.7745833841649233
+    },
+    {
+     "type": "score",
+     "score": 0.3841500891458115,
+     "normalized": 0.19207504457290575,
+     "level": "low",
+     "confidence": 0.6947133790166574,
+     "probabilities": {
+      "low": 0.6947133790166574,
+      "medium": 0.2264231528208739,
+      "high": 0.07886346816246878
+     }
+    }
+   ]
+  },
+  {
+   "id": "many_options",
+   "state": "Can you send me the invoice for March? Also my login stopped working on the mobile app.",
+   "questions": [
+    {
+     "type": "choice",
+     "instructions": "What is the primary intent?",
+     "options": [
+      "order_status",
+      "cancel_subscription",
+      "login_problem",
+      "bug_report",
+      "invoice_request",
+      "other"
+     ],
+     "descriptions": null
+    },
+    {
+     "type": "score",
+     "instructions": "How many separate requests are in this message?",
+     "options": [
+      "one",
+      "two",
+      "three or more"
+     ],
+     "descriptions": null
+    }
+   ],
+   "answers": [
+    {
+     "type": "choice",
+     "choice": "invoice_request",
+     "confidence": 0.7816166505750481,
+     "probabilities": {
+      "order_status": 0.00004217590873053842,
+      "cancel_subscription": 0.000007401901081902686,
+      "login_problem": 0.10373433437082248,
+      "bug_report": 0.0006695592651192094,
+      "invoice_request": 0.7816166505750481,
+      "other": 0.1139298779791977
+     }
+    },
+    {
+     "type": "score",
+     "score": 0.28442081999601904,
+     "normalized": 0.14221040999800952,
+     "level": "one",
+     "confidence": 0.8416622989536603,
+     "probabilities": {
+      "one": 0.8416622989536603,
+      "two": 0.03225458209666025,
+      "three or more": 0.12608311894967938
+     }
+    }
+   ]
+  }
+ ]
+}
